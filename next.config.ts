@@ -1,13 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export",
-  images:{
-    unoptimized: true,
-  },
   /* config options here */
+  output: 'export', images: { unoptimized: true, }, 
   experimental: {
     agentFeedback: true,
+    ppr: false,
   },
   cacheComponents: true,
   partialPrefetching: true,

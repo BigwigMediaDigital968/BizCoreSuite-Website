@@ -3,7 +3,7 @@
 import { useEffect, useSyncExternalStore, type ReactNode } from 'react';
 import { useMotionValue } from 'framer-motion';
 import { useSmoothScroll, SCROLL_TRACK_ID } from '../../hooks/useSmoothScroll';
-import { SceneProvider, TOTAL_SCENES } from '../../context/SceneContext';
+import { SceneProvider, SCENES_DATA, TOTAL_SCENES } from '../../context/SceneContext';
 import { progressToScene, getScrollTrackVh, subscribeLayout } from '../../config/sceneLayout';
 
 /**
@@ -31,6 +31,20 @@ export function AppShell({ children }: { children: ReactNode }) {
     sync(scrollYProgress.get());
     return scrollYProgress.on('change', sync);
   }, [scrollYProgress, sceneFloat]);
+
+  // Deep links from other pages (e.g. the blog navbar → "/#pricing"): glide to that
+  // scene once Lenis is up. Runs after useSmoothScroll's effect, so Lenis exists.
+  useEffect(() => {
+    const id = decodeURIComponent(window.location.hash.slice(1));
+    const index = SCENES_DATA.findIndex((s) => s.id === id);
+    if (index <= 0) return;
+    const raf = requestAnimationFrame(() => {
+      goTo(index);
+      // Drop the hash so a reload starts from the top like a normal visit
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [goTo]);
 
   // Track height follows the live layout (a one-time dwell can be removed)
   const trackVh = useSyncExternalStore(subscribeLayout, getScrollTrackVh, getScrollTrackVh);

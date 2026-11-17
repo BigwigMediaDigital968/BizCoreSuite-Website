@@ -6,6 +6,8 @@ import { siteConfig } from '../../config/site';
 import { sceneIndexOf } from '../../context/SceneContext';
 import { GradientButton } from './GradientButton';
 import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 
 type NavLink = (typeof siteConfig.navLinks)[number];
 const DEMO_SCENE = sceneIndexOf('final-cta');
@@ -22,17 +24,28 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenDemo,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  // Off the home page (e.g. /blogs) there are no scenes to scrub to: links go to
+  // "/#<sceneId>" and the home page glides to that scene on load (see AppShell).
+  const onHome = !!onSelectScene;
+  const onBlog = pathname?.startsWith('/blogs') ?? false;
 
-  const handleLinkClick = (link: NavLink) => {
+  const goToScene = (sceneId: string) => {
     setMobileMenuOpen(false);
-    if (onSelectScene) {
-      onSelectScene(sceneIndexOf(link.sceneId));
-    }
+    if (onSelectScene) onSelectScene(sceneIndexOf(sceneId));
+    else router.push(sceneId === 'hero' ? '/' : `/#${sceneId}`);
+  };
+  const handleLinkClick = (link: NavLink) => goToScene(link.sceneId);
+  const openDemo = () => {
+    setMobileMenuOpen(false);
+    if (onOpenDemo) onOpenDemo();
+    else goToScene(siteConfig.contact.demoUrl.replace('#', '') || 'final-cta');
   };
 
   // Highlighted while the active scene sits inside the link's [activeFrom … activeTo] range
   const isLinkActive = (link: NavLink) =>
-    activeSceneIndex >= sceneIndexOf(link.activeFrom) && activeSceneIndex <= sceneIndexOf(link.activeTo);
+    onHome && activeSceneIndex >= sceneIndexOf(link.activeFrom) && activeSceneIndex <= sceneIndexOf(link.activeTo);
 
   return (
     <header className="fixed top-0 left-0 w-full z-40 px-4 sm:px-6 md:px-8 pt-4 md:pt-5 pointer-events-none transition-all duration-300">
@@ -40,7 +53,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         
         {/* Brand Logo & Name */}
         <button 
-          onClick={() => onSelectScene && onSelectScene(0)}
+          onClick={() => goToScene('hero')}
+          aria-label="Bizcore Suite home"
           className="flex gap-1 px-4 py-2 items-baseline rounded-full glass-pill border border-white/80 shadow-card-soft group transition-transform duration-300 hover:scale-[1.02] text-left"
         >
           <Image src={"/bizcore-logo.png"} alt='bizcoresute' width={30} height={25}/>
@@ -71,6 +85,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             );
           })}
+          {/* <Link
+            href="/blogs"
+            aria-current={onBlog ? 'page' : undefined}
+            className={`relative px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 ${
+              onBlog ? 'text-navy-900 bg-tint-100 shadow-sm' : 'text-navy-muted hover:text-navy-900 hover:bg-white/50'
+            }`}
+          >
+            Blog
+            {onBlog && <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-brand-600" />}
+          </Link> */}
         </nav>
 
         {/* Right CTA Actions */}
@@ -89,6 +113,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => {
               if (onOpenDemo) onOpenDemo();
               else if (onSelectScene) onSelectScene(DEMO_SCENE);
+              else openDemo();
             }}
             showArrow
           >
@@ -138,6 +163,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <ChevronRight className="w-5 h-5 text-brand-400" />
               </button>
             ))}
+            {/* <Link
+              href="/blogs"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center justify-between py-2 text-xl font-bold text-blue-100 hover:text-white transition-colors text-left"
+            >
+              <span>Blog</span>
+              <ChevronRight className="w-5 h-5 text-brand-400" />
+            </Link> */}
           </div>
 
           <div className="flex flex-col gap-3 pt-6 border-t border-white/10">
@@ -153,6 +186,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => {
                 setMobileMenuOpen(false);
                 if (onSelectScene) onSelectScene(DEMO_SCENE);
+                else openDemo();
               }}
               showArrow
             >

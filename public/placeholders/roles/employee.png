@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" width="1200" height="750" fill="none">
+    <rect width="1200" height="750" rx="24" fill="#FFFFFF"/>
+    <rect width="1200" height="750" rx="24" stroke="rgba(10,26,74,0.08)" stroke-width="2"/>
+    
+    <!-- Window Bar -->
+    <rect width="1200" height="54" rx="24" fill="#F7F9FF"/>
+    <rect y="44" width="1200" height="10" fill="#F7F9FF"/>
+    <line x1="0" y1="54" x2="1200" y2="54" stroke="#EEF3FF" stroke-width="1"/>
+    
+    <!-- Window Controls -->
+    <circle cx="32" cy="27" r="6" fill="#EF4444" fill-opacity="0.8"/>
+    <circle cx="52" cy="27" r="6" fill="#F59E0B" fill-opacity="0.8"/>
+    <circle cx="72" cy="27" r="6" fill="#10B981" fill-opacity="0.8"/>
+    
+    <!-- Search Bar Mockup -->
+    <rect x="120" y="14" width="360" height="26" rx="8" fill="#EEF3FF"/>
+    <text x="140" y="32" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#4A5578">bizcoresuite.internal / role-employee</text>
+    
+    <!-- Status Badge -->
+    <rect x="1040" y="14" width="130" height="26" rx="13" fill="#10B981" fill-opacity="0.12"/>
+    <circle cx="1055" cy="27" r="4" fill="#10B981"/>
+    <text x="1068" y="32" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="12" fill="#047857">LIVE TELEMETRY</text>
+
+    <!-- Sidebar Mockup -->
+    <rect x="0" y="55" width="230" height="695" fill="#FAFCFF"/>
+    <line x1="230" y1="55" x2="230" y2="750" stroke="#EEF3FF" stroke-width="1"/>
+    
+    <g transform="translate(24, 85)">
+      <text font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="18" fill="#0A1A4A">Bizcore Suite</text>
+      <text y="20" font-family="'Plus Jakarta Sans', sans-serif" font-weight="500" font-size="11" fill="#4A5578">Enterprise Unified v4.2</text>
+    </g>
+
+    <!-- Nav Items -->
+    <g transform="translate(16, 140)">
+      <rect width="198" height="40" rx="10" fill="#EEF3FF"/>
+      <rect x="0" y="8" width="4" height="24" rx="2" fill="#1D4ED8"/>
+      <text x="24" y="25" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="13" fill="#1D4ED8">Employee Self-Service Portal</text>
+      
+      <text x="24" y="70" font-family="'Plus Jakarta Sans', sans-serif" font-weight="500" font-size="13" fill="#4A5578">Executive BI Radar</text>
+      <text x="24" y="110" font-family="'Plus Jakarta Sans', sans-serif" font-weight="500" font-size="13" fill="#4A5578">Branch Operations</text>
+      <text x="24" y="150" font-family="'Plus Jakarta Sans', sans-serif" font-weight="500" font-size="13" fill="#4A5578">Live Pipelines</text>
+      <text x="24" y="190" font-family="'Plus Jakarta Sans', sans-serif" font-weight="500" font-size="13" fill="#4A5578">Smart Payroll</text>
+      <text x="24" y="230" font-family="'Plus Jakarta Sans', sans-serif" font-weight="500" font-size="13" fill="#4A5578">Compliance Logs</text>
+    </g>
+
+    <!-- Main Content Stage -->
+    <g transform="translate(260, 85)">
+      <!-- Top Title & Controls -->
+      <text font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="24" fill="#0A1A4A">Employee Self-Service Portal</text>
+      <text y="24" font-family="'Plus Jakarta Sans', sans-serif" font-size="14" fill="#4A5578">Mobile geofenced check-in, leave balances, tasks & instant payslips</text>
+
+      <!-- KPI Metric Cards -->
+      <g transform="translate(0, 50)">
+        <!-- Card 1 -->
+        <rect width="280" height="110" rx="16" fill="#F7F9FF" stroke="#EEF3FF" stroke-width="1"/>
+        <text x="20" y="32" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="13" fill="#4A5578">Attendance Rate</text>
+        <text x="20" y="72" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="28" fill="#0A1A4A">99.4%</text>
+        <text x="20" y="94" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="12" fill="#10B981">Top 5% performer</text>
+
+        <!-- Card 2 -->
+        <rect x="305" width="280" height="110" rx="16" fill="#F7F9FF" stroke="#EEF3FF" stroke-width="1"/>
+        <text x="325" y="32" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="13" fill="#4A5578">Completed Tasks</text>
+        <text x="325" y="72" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="28" fill="#0A1A4A">28/30</text>
+        <text x="325" y="94" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="12" fill="#10B981">93% sprint done</text>
+
+        <!-- Card 3 -->
+        <rect x="610" width="280" height="110" rx="16" fill="#F7F9FF" stroke="#EEF3FF" stroke-width="1"/>
+        <text x="630" y="32" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="13" fill="#4A5578">Leave Balance</text>
+        <text x="630" y="72" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="28" fill="#0A1A4A">14 Days</text>
+        <text x="630" y="94" font-family="'Plus Jakarta Sans', sans-serif" font-weight="600" font-size="12" fill="#1D4ED8">Annual quota</text>
+      </g>
+
+      <!-- Chart / Visual Dashboard Area -->
+      <g transform="translate(0, 185)">
+        <rect width="585" height="280" rx="18" fill="#F7F9FF" stroke="#EEF3FF" stroke-width="1"/>
+        <text x="24" y="36" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="15" fill="#0A1A4A">Real-time Performance Trend</text>
+        <text x="24" y="56" font-family="'Plus Jakarta Sans', sans-serif" font-size="12" fill="#4A5578">Live telemetry stream updated 3 seconds ago</text>
+
+        <!-- Dynamic Chart Bars -->
+        <g transform="translate(24, 90)">
+          <line x1="0" y1="130" x2="535" y2="130" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 4"/>
+          <line x1="0" y1="70" x2="535" y2="70" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 4"/>
+          <line x1="0" y1="10" x2="535" y2="10" stroke="#E2E8F0" stroke-width="1" stroke-dasharray="4 4"/>
+
+          <!-- Area curve -->
+          <path d="M10 120 Q 80 80, 150 100 T 290 40 T 430 60 T 520 15" fill="none" stroke="#1D4ED8" stroke-width="3.5"/>
+          <path d="M10 120 Q 80 80, 150 100 T 290 40 T 430 60 T 520 15 L 520 130 L 10 130 Z" fill="url(#areaGrad_roles_employee_png)" opacity="0.3"/>
+          <circle cx="520" cy="15" r="5" fill="#1D4ED8" stroke="#FFFFFF" stroke-width="2"/>
+        </g>
+      </g>
+
+      <!-- Secondary Panel -->
+      <g transform="translate(610, 185)">
+        <rect width="280" height="280" rx="18" fill="#F7F9FF" stroke="#EEF3FF" stroke-width="1"/>
+        <text x="20" y="36" font-family="'Plus Jakarta Sans', sans-serif" font-weight="700" font-size="15" fill="#0A1A4A">Security & Sync</text>
+        <circle cx="140" cy="140" r="60" stroke="#EEF3FF" stroke-width="14" fill="none"/>
+        <circle cx="140" cy="140" r="60" stroke="#1D4ED8" stroke-width="14" stroke-dasharray="280" stroke-dashoffset="65" fill="none" stroke-linecap="round"/>
+        <text x="140" y="145" font-family="'Plus Jakarta Sans', sans-serif" font-weight="800" font-size="22" fill="#0A1A4A" text-anchor="middle">99.4%</text>
+        <text x="140" y="165" font-family="'Plus Jakarta Sans', sans-serif" font-size="11" fill="#4A5578" text-anchor="middle">Sync Health</text>
+      </g>
+
+      <!-- Asset Label Watermark (per prompt specs) -->
+      <g transform="translate(20, 500)">
+        <rect width="850" height="36" rx="8" fill="#0A1A4A" fill-opacity="0.05"/>
+        <text x="20" y="23" font-family="monospace" font-size="12" fill="#0A1A4A">ASSET: /public/placeholders/roles/employee.png — BIZCORE SUITE VECTOR MOCKUP</text>
+      </g>
+    </g>
+
+    <defs>
+      <linearGradient id="areaGrad_roles_employee_png" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#1D4ED8"/>
+        <stop offset="100%" stop-color="#EEF3FF" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+  </svg>

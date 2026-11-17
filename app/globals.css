@@ -1,26 +1,238 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* ───────── Theme (ported from tailwind.config.js, Tailwind v3 → v4) ───────── */
+@theme {
+  --color-navy-950: #050e2e;
+  --color-navy-900: #0a1a4a;
+  --color-navy-800: #0e205d;
+  --color-navy-700: #10286e;
+  --color-navy-600: #15358e;
+  --color-navy-text: #0b1230;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-brand-600: #1d4ed8;
+  --color-brand-500: #2563eb;
+  --color-brand-400: #5b8cff;
+  --color-brand-300: #93b5ff;
+  --color-brand-200: #c7d9ff;
+  --color-brand-100: #eef3ff;
+  --color-brand-50: #f7f9ff;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  --color-tint-50: #f7f9ff;
+  --color-tint-100: #eef3ff;
+  --color-tint-200: #e4ecfd;
+  --color-tint-300: #d2dffb;
+
+  --font-sans: var(--font-jakarta), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-jakarta), system-ui, -apple-system, sans-serif;
+
+  --shadow-blue-glow: 0 20px 60px -15px rgba(29, 78, 216, 0.18);
+  --shadow-blue-sm: 0 10px 30px -5px rgba(29, 78, 216, 0.12);
+  --shadow-card-soft: 0 10px 40px -10px rgba(10, 26, 74, 0.08);
+  --shadow-card-hover: 0 25px 60px -12px rgba(29, 78, 216, 0.22);
+  --shadow-glow-lg: 0 0 50px rgba(91, 140, 255, 0.35);
+  --shadow-inner-glow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.6);
+
+  --animate-float-slow: float 6s ease-in-out infinite;
+  --animate-float-medium: float 4s ease-in-out infinite;
+  --animate-float-fast: float 3s ease-in-out infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  --animate-shimmer: shimmer 2.5s linear infinite;
+  --animate-shimmer-sweep: shimmerSweep 3.5s infinite ease-in-out;
+  --animate-idle-float: idleFloat 5s ease-in-out infinite;
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  @keyframes shimmerSweep {
+    0% { transform: translateX(-150%) skewX(-20deg); }
+    100% { transform: translateX(250%) skewX(-20deg); }
+  }
+  @keyframes idleFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(0.8deg); }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@keyframes marqueeLeft {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marqueeRight {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+/* ───────── Base ───────── */
+@layer base {
+  :root {
+    --navy-950: #050e2e;
+    --navy-900: #0a1a4a;
+    --navy-800: #10286e;
+    --blue-600: #1d4ed8;
+    --blue-400: #5b8cff;
+    --tint-100: #eef3ff;
+    --tint-50: #f7f9ff;
+  }
+
+  html {
+    font-family: var(--font-jakarta), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #0b1230;
+    background-color: #f7f9ff;
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: #f7f9ff;
+    color: #0b1230;
+  }
+
+  /* Lenis recommended CSS */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  .lenis.lenis-smooth iframe {
+    pointer-events: none;
+  }
+
+  /* Subtle scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #f7f9ff;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #c7d9ff;
+    border-radius: 9999px;
+    border: 2px solid #f7f9ff;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #5b8cff;
+  }
+
+  ::selection {
+    background-color: #1d4ed8;
+    color: #ffffff;
+  }
+}
+
+/* ───────── Custom utilities ───────── */
+@utility hero-display-title {
+  /* capped by viewport height too, so short laptop screens don't overflow */
+  font-size: clamp(2.5rem, min(6vw + 1rem, 10.5vh), 5.5rem);
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  font-weight: 800;
+}
+
+@utility scene-display-title {
+  font-size: clamp(1.875rem, min(4vw + 0.5rem, 6.5vh), 3.75rem);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+}
+
+@utility section-subtitle {
+  font-size: clamp(1rem, 1.5vw + 0.5rem, 1.25rem);
+  line-height: 1.55;
+}
+
+@utility text-gradient-blue {
+  background: linear-gradient(135deg, #0a1a4a 10%, #1d4ed8 60%, #5b8cff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@utility text-gradient-white {
+  background: linear-gradient(135deg, #ffffff 30%, #c7d9ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+@utility bg-gradient-blue {
+  background: linear-gradient(135deg, #0a1a4a 0%, #1d4ed8 100%);
+}
+
+@utility bg-gradient-blue-glow {
+  background: linear-gradient(135deg, #10286e 0%, #2563eb 100%);
+}
+
+/* Former backgroundImage theme entries */
+@utility bg-brand-gradient {
+  background-image: linear-gradient(135deg, #0a1a4a 0%, #1d4ed8 100%);
+}
+@utility bg-brand-gradient-hover {
+  background-image: linear-gradient(135deg, #10286e 0%, #2563eb 100%);
+}
+@utility bg-radial-glow {
+  background-image: radial-gradient(circle, rgba(91, 140, 255, 0.15) 0%, rgba(29, 78, 216, 0.03) 50%, transparent 70%);
+}
+@utility bg-hero-halo {
+  background-image: radial-gradient(circle, rgba(91, 140, 255, 0.18) 0%, rgba(238, 243, 255, 0.6) 40%, transparent 75%);
+}
+@utility bg-dark-mesh {
+  background-image: radial-gradient(at 0% 0%, #10286e 0px, transparent 50%), radial-gradient(at 100% 100%, #050e2e 0px, transparent 50%);
+}
+
+/* Glassmorphism */
+@utility glass-pill {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 10px 30px -5px rgba(10, 26, 74, 0.08), 0 0 1px 1px rgba(255, 255, 255, 0.9) inset;
+}
+
+@utility glass-card {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(10, 26, 74, 0.08);
+  box-shadow: 0 20px 60px rgba(29, 78, 216, 0.09);
+}
+
+@utility glass-card-dark {
+  background: rgba(10, 26, 74, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(91, 140, 255, 0.2);
+  box-shadow: 0 25px 60px rgba(5, 14, 46, 0.7);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-delay: -1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    background-attachment: initial !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0s !important;
+    transition-delay: 0s !important;
+  }
 }

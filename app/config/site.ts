@@ -18,14 +18,13 @@ export const siteConfig = {
     demoUrl: "#final-cta",
     loginUrl: "https://app.bizcoresuite.com/login",
   },
-  
+
   // Links target scenes by id; the link is highlighted while the active scene is
   // within [activeFrom … activeTo] (scene ids, inclusive).
   navLinks: [
     { label: "Home", sceneId: "hero", activeFrom: "hero", activeTo: "impact" },
     { label: "Roles", sceneId: "roles", activeFrom: "roles", activeTo: "roles" },
-        { label: "Modules", sceneId: "mod-branch", activeFrom: "mod-branch", activeTo: "mod-activity" },
-
+    { label: "Modules", sceneId: "mod-branch", activeFrom: "mod-branch", activeTo: "mod-activity" },
     { label: "Pricing", sceneId: "pricing", activeFrom: "pricing", activeTo: "pricing-matrix" },
     { label: "Contact", sceneId: "final-cta", activeFrom: "final-cta", activeTo: "final-cta" },
   ],

@@ -5,6 +5,7 @@ import { Menu, X, Sparkles, ChevronRight } from 'lucide-react';
 import { siteConfig } from '../../config/site';
 import { sceneIndexOf } from '../../context/SceneContext';
 import { GradientButton } from './GradientButton';
+import Image from 'next/image';
 
 type NavLink = (typeof siteConfig.navLinks)[number];
 const DEMO_SCENE = sceneIndexOf('final-cta');
@@ -40,19 +41,10 @@ export const Navbar: React.FC<NavbarProps> = ({
         {/* Brand Logo & Name */}
         <button 
           onClick={() => onSelectScene && onSelectScene(0)}
-          className="flex items-center gap-2.5 px-4 py-2 rounded-full glass-pill border border-white/80 shadow-card-soft group transition-transform duration-300 hover:scale-[1.02] text-left"
+          className="flex gap-1 px-4 py-2 items-baseline rounded-full glass-pill border border-white/80 shadow-card-soft group transition-transform duration-300 hover:scale-[1.02] text-left"
         >
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-navy-900 to-brand-600 flex items-center justify-center text-white shadow-sm group-hover:shadow-glow transition-all">
-            <Sparkles className="w-4 h-4 text-brand-300" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-extrabold text-sm sm:text-base tracking-tight text-navy-900 leading-none">
-              Bizcore<span className="text-brand-600">.</span>
-            </span>
-            <span className="text-[9px] font-semibold tracking-wider uppercase text-navy-muted/70">
-              HRM + CRM
-            </span>
-          </div>
+          <Image src={"/bizcore-logo.png"} alt='bizcoresute' width={30} height={25}/>
+          <Image src={"/bizcore-brandname.png"} alt='bizcoresute' width={130} height={40}/>
         </button>
 
         {/* Center Navigation Links (Floating Glass Pill) */}

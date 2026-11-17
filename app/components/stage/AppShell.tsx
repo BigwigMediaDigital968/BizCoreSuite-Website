@@ -1,7 +1,7 @@
 'use client';
 
-import { useSyncExternalStore, type ReactNode } from 'react';
-import { useTransform } from 'framer-motion';
+import { useEffect, useSyncExternalStore, type ReactNode } from 'react';
+import { useMotionValue } from 'framer-motion';
 import { useSmoothScroll, SCROLL_TRACK_ID } from '../../hooks/useSmoothScroll';
 import { SceneProvider, TOTAL_SCENES } from '../../context/SceneContext';
 import { progressToScene, getScrollTrackVh, subscribeLayout } from '../../config/sceneLayout';
@@ -22,7 +22,15 @@ export function AppShell({ children }: { children: ReactNode }) {
   } = useSmoothScroll(TOTAL_SCENES);
 
   // Fractional scene position through the weighted scroll layout
-  const sceneFloat = useTransform(scrollYProgress, progressToScene);
+  // Driven from an effect (not useTransform) — useTransform re-sets its value during
+  // render, which notifies SceneProvider's listener mid-render and triggers React's
+  // "Cannot update a component while rendering a different component" error.
+  const sceneFloat = useMotionValue(0);
+  useEffect(() => {
+    const sync = (p: number) => sceneFloat.set(progressToScene(p));
+    sync(scrollYProgress.get());
+    return scrollYProgress.on('change', sync);
+  }, [scrollYProgress, sceneFloat]);
 
   // Track height follows the live layout (a one-time dwell can be removed)
   const trackVh = useSyncExternalStore(subscribeLayout, getScrollTrackVh, getScrollTrackVh);

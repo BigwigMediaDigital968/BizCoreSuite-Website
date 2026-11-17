@@ -1,15 +1,12 @@
+
 /**
  * Bizcore Suite — Centralized Asset Catalog
  * Every image, dashboard mockup, brand logo, and avatar used in the application is defined here.
  *
  * Dashboard / role / module images are DUMMY stock photos loaded by direct URL
- * from Unsplash (images.unsplash.com), cropped to the 1200×750 mockup frame.
+ * from Unsplash (images.unsplash.com).
  * Replace each `src` with a real product screenshot before launch.
  */
-
-/** Direct Unsplash URL, cropped to the dashboard frame (16:10). */
-const unsplash = (id: string) =>
-  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=1200&h=750&q=80`;
 
 export interface ImageAsset {
   src: string;
@@ -19,12 +16,12 @@ export interface ImageAsset {
   blurDataURL?: string;
 }
 
-const defaultBlur = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'%3E%3Crect width='100%25' height='100%25' fill='%23EEF3FF'/%3E%3Ccircle cx='50' cy='30' r='20' fill='%231D4ED8' fill-opacity='0.15'/%3E%3C/svg%3E";
+const defaultBlur = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 60'%3Crect width='100%25' height='100%25' fill='%23EEF3FF'/%3E%3Ccircle cx='50' cy='30' r='20' fill='%231D4ED8' fill-opacity='0.15'/%3E%3C/svg%3E";
 
 export const siteAssets = {
   hero: {
     dashboard: {
-      src: unsplash("1551434678-e076c223a692"), // team working at screens
+      src: "https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&w=1200&h=750&q=80",
       alt: "Bizcore Suite Central Command Dashboard showing real-time multi-branch revenue and HR telemetry",
       width: 1200,
       height: 750,

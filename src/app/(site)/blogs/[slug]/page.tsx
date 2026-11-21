@@ -84,44 +84,46 @@ export default async function BlogPostPage({ params }: PageProps<"/blogs/[slug]"
           All posts
         </Link>
 
-        <header className="mt-8 max-w-4xl">
-          <h1 className="scene-display-title text-balance text-navy-900">{post.title}</h1>
-          {post.excerpt && (
-            <p className="section-subtitle mt-5 max-w-3xl text-navy-muted">{post.excerpt}</p>
-          )}
-
-          <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
-            <div className="flex items-center gap-3">
-              <span
-                aria-hidden="true"
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-gradient text-sm font-bold text-white"
-              >
-                {(post.author || "B").trim().charAt(0).toUpperCase()}
-              </span>
-              <span className="font-semibold text-navy-900">{post.author}</span>
-            </div>
-            <time dateTime={published?.toISOString?.()} className="text-navy-muted">
-              {formatPostDate(published)}
-            </time>
-            <span className="text-navy-muted">{minutes} min read</span>
-          </div>
-        </header>
-
-        {post.coverImage && (
-          <figure className="mt-10 overflow-hidden rounded-3xl border border-white/80 bg-tint-100 shadow-card-soft">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={resizeImage(post.coverImage, 1600)}
-              alt={post.coverImageAlt || post.title}
-              fetchPriority="high"
-              decoding="async"
-              className="aspect-[16/8] w-full object-cover"
-            />
-          </figure>
-        )}
-
-        <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,44rem)_16rem] lg:justify-between">
+        <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-14">
           <div className="min-w-0">
+            <header className="max-w-3xl">
+              <h1 className="scene-display-title text-balance text-navy-900">{post.title}</h1>
+              {post.excerpt && (
+                <p className="section-subtitle mt-5 max-w-3xl text-navy-muted">{post.excerpt}</p>
+              )}
+
+              <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+                <div className="flex items-center gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-gradient text-sm font-bold text-white"
+                  >
+                    {(post.author || "B").trim().charAt(0).toUpperCase()}
+                  </span>
+                  <span className="font-semibold text-navy-900">{post.author}</span>
+                </div>
+                <time dateTime={published?.toISOString?.()} className="text-navy-muted">
+                  {formatPostDate(published)}
+                </time>
+                <span className="text-navy-muted">{minutes} min read</span>
+              </div>
+            </header>
+
+            {post.coverImage && (
+              <figure className="mt-8 overflow-hidden rounded-3xl border border-white/80 bg-tint-100 shadow-card-soft">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={resizeImage(post.coverImage, 1200)}
+                  alt={post.coverImageAlt || post.title}
+                  fetchPriority="high"
+                  decoding="async"
+                  className="aspect-[16/9] w-full object-cover"
+                />
+              </figure>
+            )}
+
+
+            <div className="mt-10" />
             <MobileToc toc={toc} />
 
             {html ? (
@@ -174,11 +176,33 @@ export default async function BlogPostPage({ params }: PageProps<"/blogs/[slug]"
             </div>
           </div>
 
-          <ArticleRail toc={toc} />
+          <ArticleRail toc={toc}>
+            {related.length > 0 && (
+              <section aria-labelledby="related-side-heading">
+                <h2 id="related-side-heading" className="mb-3 text-sm font-bold text-navy-900">Related posts</h2>
+                <ul className="space-y-3">
+                  {related.map((p) => (
+                    <li key={p.slug}>
+                      <Link href={`/blogs/${p.slug}`} className="group flex gap-3 rounded-xl p-1.5 -m-1.5 transition hover:bg-white/70 focus-visible:outline-2 focus-visible:outline-brand-600">
+                        {p.coverImage && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={resizeImage(p.coverImage, 240)} alt="" loading="lazy" className="h-14 w-20 shrink-0 rounded-lg object-cover" />
+                        )}
+                        <span className="min-w-0">
+                          <span className="line-clamp-2 text-[13px] font-semibold leading-snug text-navy-900 group-hover:text-brand-600">{p.title}</span>
+                          <span className="mt-0.5 block text-xs text-navy-muted">{formatPostDate(p.publishedAt ?? p.createdAt)}</span>
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </ArticleRail>
         </div>
 
         {related.length > 0 && (
-          <section aria-labelledby="related-heading" className="mt-20">
+          <section aria-labelledby="related-heading" className="mt-20 lg:hidden">
             <h2 id="related-heading" className="text-2xl font-extrabold tracking-tight text-navy-900">
               Keep reading
             </h2>

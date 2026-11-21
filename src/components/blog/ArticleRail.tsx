@@ -80,7 +80,7 @@ export function CopyLinkButton() {
 }
 
 /** Large screens: sticky "On this page" rail with the current section marked. */
-export function ArticleRail({ toc }: { toc: TocItem[] }) {
+export function ArticleRail({ toc, children }: { toc: TocItem[]; children?: React.ReactNode }) {
   const active = useActiveHeading(toc);
   return (
     <aside className="hidden lg:block">
@@ -92,6 +92,7 @@ export function ArticleRail({ toc }: { toc: TocItem[] }) {
           </nav>
         )}
         <CopyLinkButton />
+        {children}
       </div>
     </aside>
   );

@@ -8,6 +8,7 @@ const unauthorized = () => NextResponse.json({ error: "Unauthorized" }, { status
  *  - /admin/*                -> redirect to /admin/login when not signed in
  *  - POST /api/lead          -> public (landing-page demo form)
  *  - GET  /api/blog[/...]    -> public (route itself only returns published posts to visitors)
+ *  - POST /api/upload        -> admin only (Cloudinary image uploads)
  *  - everything else under /api/lead, /api/blog, /api/admin/stats -> 401 unless signed in
  */
 export async function proxy(request: NextRequest) {
@@ -21,6 +22,10 @@ export async function proxy(request: NextRequest) {
 
   if (pathname.startsWith("/api/blog")) {
     return request.method === "GET" || authed ? NextResponse.next() : unauthorized();
+  }
+
+  if (pathname.startsWith("/api/upload")) {
+    return authed ? NextResponse.next() : unauthorized();
   }
 
   if (pathname.startsWith("/api/admin/stats")) {
@@ -45,5 +50,6 @@ export const config = {
     "/api/blog",
     "/api/blog/:path*",
     "/api/admin/stats",
+    "/api/upload",
   ],
 };

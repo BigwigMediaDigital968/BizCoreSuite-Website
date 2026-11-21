@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { connectDB } from "@/src/db/connect";
 import { Blog } from "@/src/db/models/Blog";
+import { sanitizeFaqs } from "@/src/lib/faqs";
 import { ADMIN_COOKIE, verifySessionToken } from "@/src/utils/adminSession";
 
 const STATUSES = ["DRAFT", "PUBLISHED"];
@@ -80,6 +81,14 @@ export async function POST(req: Request) {
       content: String(body.content ?? ""),
       author: String(body.author ?? "").trim() || undefined,
       status,
+      coverImage: String(body.coverImage ?? ""),
+      coverImageAlt: String(body.coverImageAlt ?? "").trim(),
+      metaTitle: String(body.metaTitle ?? "").trim(),
+      metaDescription: String(body.metaDescription ?? "").trim(),
+      tags: Array.isArray(body.tags)
+        ? body.tags.map((t) => String(t).trim()).filter(Boolean).slice(0, 30)
+        : [],
+      faqs: sanitizeFaqs(body.faqs),
       publishedAt: status === "PUBLISHED" ? new Date() : undefined,
     });
     return NextResponse.json(post, { status: 201 });

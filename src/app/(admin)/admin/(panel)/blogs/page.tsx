@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ErrorNote,
@@ -9,36 +10,16 @@ import {
   Pill,
   RowChevron,
   SearchInput,
-  SlideOver,
   Tabs,
-  btnDanger,
   btnPrimary,
-  btnSecondary,
-  inputCls,
   readQueryParam,
   thCls,
   timeAgo,
 } from "@/src/components/admin/shared";
+import type { Post, PostStatus } from "@/src/types/blog";
 
-type PostStatus = "DRAFT" | "PUBLISHED";
 type Filter = "" | PostStatus;
-
-interface Post {
-  _id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  author: string;
-  status: PostStatus;
-  updatedAt: string;
-  publishedAt?: string;
-}
-
 const LIMIT = 12;
-const EMPTY = { title: "", slug: "", excerpt: "", content: "", author: "", status: "DRAFT" as PostStatus };
-
-const slugify = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
 function PostPill({ status }: { status: PostStatus }) {
   return status === "PUBLISHED" ? (
@@ -66,13 +47,12 @@ export default function BlogsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // Slide-over editor: null = closed, "new" = create, Post = edit
-  const [editing, setEditing] = useState<null | "new" | Post>(null);
-  const [form, setForm] = useState(EMPTY);
-  const [slugTouched, setSlugTouched] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState("");
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  // Preserve backward compatibility if dashboard links to /admin/blogs?new=1
+  useEffect(() => {
+    if (readQueryParam("new")) {
+      router.replace("/admin/blogs/new");
+    }
+  }, [router]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -106,81 +86,21 @@ export default function BlogsPage() {
     load();
   }, [load]);
 
-  const openNew = useCallback(() => {
-    setForm(EMPTY);
-    setSlugTouched(false);
-    setFormError("");
-    setEditing("new");
-  }, []);
-
-  // Dashboard "New post" links here with ?new=1
-  useEffect(() => {
-    if (readQueryParam("new")) {
-      openNew();
-      router.replace("/admin/blogs");
-    }
-  }, [openNew, router]);
-
-  const close = useCallback(() => {
-    setEditing(null);
-    setConfirmDelete(false);
-    setFormError("");
-  }, []);
-
-  function openEdit(p: Post) {
-    setForm({ title: p.title, slug: p.slug, excerpt: p.excerpt, content: p.content, author: p.author, status: p.status });
-    setSlugTouched(true);
-    setFormError("");
-    setEditing(p);
-  }
-
-  async function save(e: FormEvent) {
-    e.preventDefault();
-    if (!form.title.trim()) return setFormError("Add a title before saving.");
-    setSaving(true);
-    setFormError("");
-    try {
-      const isNew = editing === "new";
-      const res = await fetch(isNew ? "/api/blog" : `/api/blog/${(editing as Post)._id}`, {
-        method: isNew ? "POST" : "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      if (res.status === 401) return router.replace("/admin/login");
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        return setFormError(data.error || "Could not save the post.");
-      }
-      close();
-      load();
-    } catch {
-      setFormError("Network error. Check your connection and try again.");
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function remove(p: Post) {
-    const res = await fetch(`/api/blog/${p._id}`, { method: "DELETE" });
-    if (!res.ok) return setFormError("Could not delete the post.");
-    close();
-    load();
-  }
-
-  const set = (k: keyof typeof EMPTY, v: string) => setForm((f) => ({ ...f, [k]: v }));
-  const isEdit = !!editing && editing !== "new";
-
   return (
     <div>
       <PageHeader
         breadcrumb={[{ label: "Workspace", href: "/admin" }, { label: "Blogs" }]}
         title="Blogs"
-        badge={<Pill>{total} {status ? (status === "PUBLISHED" ? "published" : "drafts") : "posts"}</Pill>}
+        badge={
+          <Pill>
+            {total} {status ? (status === "PUBLISHED" ? "published" : "drafts") : "posts"}
+          </Pill>
+        }
         description="Write and publish the posts that appear on your site."
         actions={
-          <button onClick={openNew} className={btnPrimary}>
+          <Link href="/admin/blogs/new" className={btnPrimary}>
             New post
-          </button>
+          </Link>
         }
       />
 
@@ -227,38 +147,47 @@ export default function BlogsPage() {
               ) : !posts.length ? (
                 <tr>
                   <td colSpan={5} className="px-5 py-16 text-center">
-                    <div className="text-sm font-medium text-ink">{query || status ? "No posts match" : "No posts yet"}</div>
+                    <div className="text-sm font-medium text-ink">
+                      {query || status ? "No posts match" : "No posts yet"}
+                    </div>
                     <div className="mt-1 text-sm text-ink-soft">
                       {query || status ? (
                         "Clear the search or pick another filter."
                       ) : (
-                        <button onClick={openNew} className="font-medium text-ink underline underline-offset-2">
+                        <Link
+                          href="/admin/blogs/new"
+                          className="font-medium text-ink underline underline-offset-2"
+                        >
                           Write your first post
-                        </button>
+                        </Link>
                       )}
                     </div>
                   </td>
                 </tr>
               ) : (
                 posts.map((p) => (
-                  <tr key={p._id} onClick={() => openEdit(p)} className="group cursor-pointer transition-colors hover:bg-canvas/70">
+                  <tr
+                    key={p._id}
+                    onClick={() => router.push(`/admin/blogs/${p._id}`)}
+                    className="group cursor-pointer transition-colors hover:bg-canvas/70"
+                  >
                     <td className="max-w-md px-5 py-3">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openEdit(p);
-                        }}
+                      <Link
+                        href={`/admin/blogs/${p._id}`}
+                        onClick={(e) => e.stopPropagation()}
                         className="block max-w-full truncate text-left font-medium text-ink focus-visible:underline"
                       >
                         {p.title}
-                      </button>
+                      </Link>
                       <div className="truncate text-xs text-ink-faint">/blogs/{p.slug}</div>
                     </td>
                     <td className="px-5 py-3 text-ink-soft">{p.author}</td>
                     <td className="px-5 py-3">
                       <PostPill status={p.status} />
                     </td>
-                    <td className="whitespace-nowrap px-5 py-3 text-ink-soft">{timeAgo(p.updatedAt)}</td>
+                    <td className="whitespace-nowrap px-5 py-3 text-ink-soft">
+                      {timeAgo(p.updatedAt)}
+                    </td>
                     <td className="pr-4">
                       <RowChevron />
                     </td>
@@ -270,95 +199,6 @@ export default function BlogsPage() {
         </div>
         <Pagination page={page} totalPages={totalPages} total={total} limit={LIMIT} onPage={setPage} />
       </section>
-
-      <SlideOver open={!!editing} title={isEdit ? "Edit post" : "New post"} onClose={close}>
-        <form onSubmit={save} className="space-y-4" noValidate>
-          <div>
-            <label htmlFor="p-title" className="mb-1.5 block text-[13px] text-ink-soft">Title</label>
-            <input
-              id="p-title"
-              value={form.title}
-              onChange={(e) => {
-                set("title", e.target.value);
-                if (!slugTouched) set("slug", slugify(e.target.value));
-              }}
-              className={`${inputCls} text-base font-medium`}
-            />
-          </div>
-          <div>
-            <label htmlFor="p-slug" className="mb-1.5 block text-[13px] text-ink-soft">Web address</label>
-            <div className="flex items-center rounded-lg border border-line bg-white transition focus-within:border-ink/40 focus-within:ring-4 focus-within:ring-ink/5">
-              <span className="pl-3 text-sm text-ink-faint">/blogs/</span>
-              <input
-                id="p-slug"
-                value={form.slug}
-                onChange={(e) => {
-                  setSlugTouched(true);
-                  set("slug", slugify(e.target.value));
-                }}
-                className="w-full bg-transparent px-1 py-2 text-sm text-ink outline-none"
-              />
-            </div>
-          </div>
-          <div>
-            <label htmlFor="p-excerpt" className="mb-1.5 block text-[13px] text-ink-soft">Summary</label>
-            <textarea id="p-excerpt" rows={2} value={form.excerpt} onChange={(e) => set("excerpt", e.target.value)} className={inputCls} />
-          </div>
-          <div>
-            <label htmlFor="p-content" className="mb-1.5 block text-[13px] text-ink-soft">Content</label>
-            <textarea id="p-content" rows={12} value={form.content} onChange={(e) => set("content", e.target.value)} className={`${inputCls} leading-relaxed`} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="p-author" className="mb-1.5 block text-[13px] text-ink-soft">Author</label>
-              <input id="p-author" value={form.author} onChange={(e) => set("author", e.target.value)} placeholder="BizCore Team" className={inputCls} />
-            </div>
-            <div>
-              <label htmlFor="p-status" className="mb-1.5 block text-[13px] text-ink-soft">Status</label>
-              <select id="p-status" value={form.status} onChange={(e) => set("status", e.target.value)} className={inputCls}>
-                <option value="DRAFT">Draft</option>
-                <option value="PUBLISHED">Published</option>
-              </select>
-            </div>
-          </div>
-
-          {formError && (
-            <p role="alert" className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-800">
-              {formError}
-            </p>
-          )}
-
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
-            {isEdit ? (
-              confirmDelete ? (
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="text-ink-soft">Delete this post?</span>
-                  <button type="button" onClick={() => remove(editing as Post)} className="font-semibold text-rose-700 hover:underline">
-                    Delete post
-                  </button>
-                  <button type="button" onClick={() => setConfirmDelete(false)} className="text-ink-soft hover:underline">
-                    Keep
-                  </button>
-                </div>
-              ) : (
-                <button type="button" onClick={() => setConfirmDelete(true)} className={btnDanger}>
-                  Delete post
-                </button>
-              )
-            ) : (
-              <span />
-            )}
-            <div className="flex gap-2">
-              <button type="button" onClick={close} className={btnSecondary}>
-                Cancel
-              </button>
-              <button type="submit" disabled={saving} className={btnPrimary}>
-                {saving ? "Saving…" : isEdit ? "Save changes" : form.status === "PUBLISHED" ? "Publish post" : "Save draft"}
-              </button>
-            </div>
-          </div>
-        </form>
-      </SlideOver>
     </div>
   );
 }

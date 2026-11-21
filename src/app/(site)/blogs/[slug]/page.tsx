@@ -1,114 +1,202 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { connection } from "next/server";
-import { connectDB } from "@/src/db/connect";
-import { Blog } from "@/src/db/models/Blog";
-import { BlogChrome, formatPostDate, readingTime } from "@/src/components/blog/BlogChrome";
+import { ArrowLeft, ChevronDown } from "lucide-react";
+import { BlogChrome, formatPostDate } from "@/src/components/blog/BlogChrome";
+import { ArticleRail, CopyLinkButton, MobileToc } from "@/src/components/blog/ArticleRail";
+import { PostCard } from "@/src/components/blog/PostCard";
 import { GradientButton } from "@/src/components/ui/GradientButton";
-
-interface Post {
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  author: string;
-  publishedAt?: Date;
-  createdAt: Date;
-}
-
-async function getPost(slug: string): Promise<Post | null> {
-  await connection();
-  await connectDB();
-  return (await Blog.findOne({ slug: slug.toLowerCase(), status: "PUBLISHED" }).lean()) as unknown as Post | null;
-}
+import { getPublishedPost, getRelatedPosts } from "@/src/lib/blogQueries";
+import { resizeImage } from "@/src/lib/cloudinaryUrl";
+import { faqJsonLd } from "@/src/lib/faqs";
+import { prepareArticle } from "@/src/lib/sanitizeHtml";
 
 export async function generateMetadata({ params }: PageProps<"/blogs/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPost(slug);
+  const post = await getPublishedPost(slug);
   if (!post) return { title: "Post not found — Bizcore Suite" };
-  return { title: `${post.title} — Bizcore Suite`, description: post.excerpt || undefined };
+
+  const title = `${post.metaTitle || post.title} — Bizcore Suite`;
+  const description = post.metaDescription || post.excerpt || undefined;
+  const image = post.coverImage ? resizeImage(post.coverImage, 1200) : undefined;
+
+  return {
+    title,
+    description,
+    keywords: post.tags?.length ? post.tags : undefined,
+    authors: post.author ? [{ name: post.author }] : undefined,
+    openGraph: {
+      type: "article",
+      title,
+      description,
+      publishedTime: (post.publishedAt ?? post.createdAt)?.toISOString?.(),
+      modifiedTime: post.updatedAt?.toISOString?.(),
+      authors: post.author ? [post.author] : undefined,
+      tags: post.tags,
+      images: image ? [{ url: image, alt: post.coverImageAlt || post.title }] : undefined,
+    },
+    twitter: { card: image ? "summary_large_image" : "summary", title, description, images: image ? [image] : undefined },
+  };
 }
 
-/**
- * Content is plain text: blank lines split paragraphs, a line starting with "## "
- * becomes a section heading, and lines starting with "- " become a bullet list.
- */
-function renderContent(content: string) {
-  return content
-    .replace(/\r\n/g, "\n")
-    .split(/\n{2,}/)
-    .map((block) => block.trim())
-    .filter(Boolean)
-    .map((block, i) => {
-      if (block.startsWith("## ")) {
-        return (
-          <h2 key={i} className="mt-10 text-2xl font-extrabold tracking-tight text-navy-900">
-            {block.slice(3)}
-          </h2>
-        );
-      }
-      const lines = block.split("\n");
-      if (lines.every((l) => l.trim().startsWith("- "))) {
-        return (
-          <ul key={i} className="mt-5 list-disc space-y-1.5 pl-5">
-            {lines.map((l, j) => (
-              <li key={j}>{l.trim().slice(2)}</li>
-            ))}
-          </ul>
-        );
-      }
-      return (
-        <p key={i} className="mt-5">
-          {lines.map((l, j) => (
-            <span key={j}>
-              {j > 0 && <br />}
-              {l}
-            </span>
-          ))}
-        </p>
-      );
-    });
-}
+/** JSON-LD must not be able to close its own <script> tag. */
+const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, "\\u003c");
 
 export default async function BlogPostPage({ params }: PageProps<"/blogs/[slug]">) {
   const { slug } = await params;
-  const post = await getPost(slug);
+  const post = await getPublishedPost(slug);
   if (!post) notFound();
+
+  const [related, { html, toc, wordCount }] = await Promise.all([
+    getRelatedPosts(post),
+    Promise.resolve(prepareArticle(post.content)),
+  ]);
+
+  const faqs = post.faqs ?? [];
+  const published = post.publishedAt ?? post.createdAt;
+  const minutes = Math.max(1, Math.round(wordCount / 220));
+
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.metaDescription || post.excerpt || undefined,
+    image: post.coverImage ? [resizeImage(post.coverImage, 1200)] : undefined,
+    datePublished: published?.toISOString?.(),
+    dateModified: (post.updatedAt ?? published)?.toISOString?.(),
+    author: post.author ? { "@type": "Person", name: post.author } : undefined,
+    keywords: post.tags?.length ? post.tags.join(", ") : undefined,
+    wordCount,
+  };
+  const faqSchema = faqJsonLd(faqs);
 
   return (
     <BlogChrome>
-      <article className="mx-auto w-full max-w-3xl px-4 pb-16 sm:px-6">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(articleSchema) }} />
+      {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqSchema) }} />}
+
+      <article className="mx-auto w-full max-w-7xl px-4 pb-16 sm:px-6 md:px-12">
         <Link
           href="/blogs"
-          className="inline-flex rounded-full border border-tint-200/80 bg-white/70 px-3.5 py-1.5 text-xs font-semibold text-navy-900 shadow-sm transition hover:bg-white hover:text-brand-600"
+          className="inline-flex items-center gap-1.5 rounded-full border border-tint-200/80 bg-white/70 px-3.5 py-1.5 text-xs font-semibold text-navy-900 shadow-sm transition hover:bg-white hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         >
+          <ArrowLeft className="h-3.5 w-3.5" />
           All posts
         </Link>
 
-        <h1 className="scene-display-title mt-6 text-navy-900">
-          {post.title}
-        </h1>
-        <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-sm text-navy-muted">
-          <span>{post.author}</span>
-          <time>{formatPostDate(post.publishedAt ?? post.createdAt)}</time>
-          <span>{readingTime(post.content)} min read</span>
-        </div>
+        <header className="mt-8 max-w-4xl">
+          <h1 className="scene-display-title text-balance text-navy-900">{post.title}</h1>
+          {post.excerpt && (
+            <p className="section-subtitle mt-5 max-w-3xl text-navy-muted">{post.excerpt}</p>
+          )}
 
-        <div className="glass-card mt-8 rounded-3xl px-6 py-8 sm:px-10 sm:py-10">
-          {post.excerpt && <p className="section-subtitle font-medium text-navy-900">{post.excerpt}</p>}
-          <div className="mt-2 text-[17px] leading-[1.75] text-navy-900/85">
-            {post.content ? renderContent(post.content) : null}
+          <div className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-3 text-sm">
+            <div className="flex items-center gap-3">
+              <span
+                aria-hidden="true"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-gradient text-sm font-bold text-white"
+              >
+                {(post.author || "B").trim().charAt(0).toUpperCase()}
+              </span>
+              <span className="font-semibold text-navy-900">{post.author}</span>
+            </div>
+            <time dateTime={published?.toISOString?.()} className="text-navy-muted">
+              {formatPostDate(published)}
+            </time>
+            <span className="text-navy-muted">{minutes} min read</span>
           </div>
+        </header>
+
+        {post.coverImage && (
+          <figure className="mt-10 overflow-hidden rounded-3xl border border-white/80 bg-tint-100 shadow-card-soft">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={resizeImage(post.coverImage, 1600)}
+              alt={post.coverImageAlt || post.title}
+              fetchPriority="high"
+              decoding="async"
+              className="aspect-[16/8] w-full object-cover"
+            />
+          </figure>
+        )}
+
+        <div className="mt-12 grid gap-12 lg:grid-cols-[minmax(0,44rem)_16rem] lg:justify-between">
+          <div className="min-w-0">
+            <MobileToc toc={toc} />
+
+            {html ? (
+              <div className="rich-content rich-content--site" dangerouslySetInnerHTML={{ __html: html }} />
+            ) : (
+              <p className="text-navy-muted">This post has no content yet.</p>
+            )}
+
+            {faqs.length > 0 && (
+              <section aria-labelledby="faq-heading" className="mt-16">
+                <h2 id="faq-heading" className="text-2xl font-extrabold tracking-tight text-navy-900">
+                  Frequently asked questions
+                </h2>
+                <div className="mt-5 divide-y divide-tint-300/70 border-y border-tint-300/70">
+                  {faqs.map((f, i) => (
+                    <details key={i} className="group py-1">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-left text-base font-semibold text-navy-900 transition-colors hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 [&::-webkit-details-marker]:hidden">
+                        <span>{f.question}</span>
+                        <ChevronDown
+                          aria-hidden="true"
+                          className="h-5 w-5 shrink-0 text-brand-600 transition-transform duration-300 group-open:rotate-180"
+                        />
+                      </summary>
+                      <p className="max-w-[40rem] whitespace-pre-line pb-5 text-[15px] leading-relaxed text-navy-900/80">
+                        {f.answer}
+                      </p>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {(post.tags?.length ?? 0) > 0 && (
+              <div className="mt-12 flex flex-wrap items-center gap-2">
+                <span className="mr-1 text-sm text-navy-muted">Filed under</span>
+                {post.tags!.map((t) => (
+                  <Link
+                    key={t}
+                    href={`/blogs?tag=${encodeURIComponent(t)}`}
+                    className="rounded-full border border-tint-200/80 bg-white/70 px-3 py-1 text-xs font-semibold text-navy-900 transition hover:bg-white hover:text-brand-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+                  >
+                    {t}
+                  </Link>
+                ))}
+              </div>
+            )}
+
+            <div className="mt-8 lg:hidden">
+              <CopyLinkButton />
+            </div>
+          </div>
+
+          <ArticleRail toc={toc} />
         </div>
 
-        <aside className="mt-10 rounded-3xl bg-brand-gradient p-7 text-white shadow-blue-glow sm:p-9">
+        {related.length > 0 && (
+          <section aria-labelledby="related-heading" className="mt-20">
+            <h2 id="related-heading" className="text-2xl font-extrabold tracking-tight text-navy-900">
+              Keep reading
+            </h2>
+            <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {related.map((p) => (
+                <PostCard key={p.slug} post={p} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <aside className="mt-16 rounded-3xl bg-brand-gradient p-7 text-white shadow-blue-glow sm:p-10">
           <h2 className="text-xl font-bold tracking-tight sm:text-2xl">See Bizcore running your business</h2>
           <p className="mt-2 max-w-md text-white/75">
             Book a 15-minute walkthrough of branches, attendance, payroll and leads in one place.
           </p>
           <GradientButton href="/#final-cta" variant="secondary" size="sm" showArrow className="mt-5">
-            Book a Demo
+            Book a demo
           </GradientButton>
         </aside>
       </article>

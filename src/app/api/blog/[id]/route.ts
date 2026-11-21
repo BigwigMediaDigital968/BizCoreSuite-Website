@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectDB } from "@/src/db/connect";
 import { Blog } from "@/src/db/models/Blog";
+import { sanitizeFaqs } from "@/src/lib/faqs";
+import { collectPublicIds } from "@/src/lib/cloudinary";
+import { deleteUnusedImages } from "@/src/lib/blogImages";
 
 const STATUSES = ["DRAFT", "PUBLISHED"];
-const EDITABLE = ["title", "slug", "excerpt", "content", "author", "status"];
+const EDITABLE = ["title", "slug", "excerpt", "content", "author", "status", "coverImage", "coverImageAlt", "metaTitle", "metaDescription", "tags", "faqs"];
 const slugify = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
 
@@ -57,14 +60,29 @@ export async function PATCH(req: Request, ctx: Ctx) {
       return NextResponse.json({ error: `Invalid status. Use one of: ${STATUSES.join(", ")}` }, { status: 400 });
     }
 
+    if (update.faqs !== undefined) update.faqs = sanitizeFaqs(update.faqs);
+    if (update.tags !== undefined) {
+      update.tags = Array.isArray(update.tags)
+        ? update.tags.map((t) => String(t).trim()).filter(Boolean).slice(0, 30)
+        : [];
+    }
+
     await connectDB();
+    const existing = await Blog.findById(id, { publishedAt: 1, coverImage: 1, content: 1 }).lean();
     // Stamp publishedAt the first time a post goes live
-    if (update.status === "PUBLISHED") {
-      const existing = await Blog.findById(id, { publishedAt: 1 }).lean();
-      if (existing && !existing.publishedAt) update.publishedAt = new Date();
+    if (update.status === "PUBLISHED" && existing && !existing.publishedAt) {
+      update.publishedAt = new Date();
     }
     const post = await Blog.findByIdAndUpdate(id, update, { new: true, runValidators: true }).lean();
     if (!post) return NextResponse.json({ error: "Post not found" }, { status: 404 });
+
+    // Remove Cloudinary images that were replaced or deleted from this post
+    if (existing) {
+      const before = collectPublicIds(existing.coverImage, existing.content);
+      const after = collectPublicIds(post.coverImage, post.content);
+      const removed = [...before].filter((pid) => !after.has(pid));
+      if (removed.length) await deleteUnusedImages(removed, id);
+    }
     return NextResponse.json(post);
   } catch (error: unknown) {
     if ((error as { code?: number })?.code === 11000) {
@@ -82,6 +100,7 @@ export async function DELETE(_req: Request, ctx: Ctx) {
     await connectDB();
     const post = await Blog.findByIdAndDelete(id).lean();
     if (!post) return NextResponse.json({ error: "Post not found" }, { status: 404 });
+    await deleteUnusedImages(collectPublicIds(post.coverImage, post.content), id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/blog/[id] failed:", error);
